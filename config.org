@@ -82,7 +82,12 @@
 	:config (add-hook 'org-mode-hook (lambda() (org-bullets-mode 1))))
     #+END_SRC
 * Modes
-** Evil Mode 
+** C/C++ Mode
+   #+BEGIN_SRC emacs-lisp
+
+   #+END_SRC
+* General Packages
+** Evil 
    #+BEGIN_SRC emacs-lisp
      (use-package evil
        :ensure t
@@ -113,41 +118,6 @@
      (add-hook 'go-mode-hook #'lsp-deferred)
      (add-hook 'go-mode-hook #'yas-minor-mode)
    #+END_SRC
-** Company Mode 
-   #+BEGIN_SRC emacs-lisp
-     (use-package company
-       :bind (:map company-active-map
-		   ("C-n" . company-select-next)
-		   ("C-p" . company-select-previous))
-       :config
-       (setq company-idle-delay 0.3)
-       (setq company-minimum-prefix-length 1)
-       (global-company-mode t))
-    #+END_SRC
-** YASnippet Mode 
-   #+BEGIN_SRC emacs-lisp
-     (use-package yasnippet
-       :ensure t)
-    #+END_SRC
-** Go Mode 
-   #+BEGIN_SRC emacs-lisp
-     (use-package go-mode
-       :ensure t)
-
-     (defun my-go-mode-hook ()
-	; Call Gofmt before saving
-       (add-hook 'before-save-hook 'gofmt-before-save)
-					     ; Customize compile command to run go build
-       (if (not (string-match "go" compile-command))
-	   (set (make-local-variable 'compile-command)
-		"go build -v && go test -v && go vet"))
-					     ; Godef jump key binding
-       (local-set-key (kbd "M-.") 'godef-jump)
-       (local-set-key (kbd "M-*") 'pop-tag-mark)
-       )
-     (add-hook 'go-mode-hook 'my-go-mode-hook)
-   #+END_SRC
-* General Packages
 ** Helm 
    #+BEGIN_SRC emacs-lisp
      (use-package helm
@@ -253,10 +223,103 @@
        :config (treemacs-icons-dired-mode))
    #+END_SRC
    
-** Project Management (Projectile)
+** Projectile
    #+BEGIN_SRC emacs-lisp
      (use-package projectile 
        :ensure t
        :config (projectile-mode +1)
        (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
+   #+END_SRC
+** YASnippet
+   #+BEGIN_SRC emacs-lisp
+     (use-package yasnippet
+       :ensure t)
+    #+END_SRC
+** Company 
+   #+BEGIN_SRC emacs-lisp
+     (use-package company
+      :ensure t
+      :bind (:map company-active-map
+		  ("C-n" . company-select-next)
+		  ("C-p" . company-select-previous))
+      :config
+      (setq company-idle-delay 0)
+      (setq company-minimum-prefix-length 1)
+      (global-company-mode t))
+     #+END_SRC
+*** Company Irony C Headers
+    #+BEGIN_SRC emacs-lisp
+    (use-package company-irony-c-headers
+	:ensure t)
+    (eval-after-load 'company
+	'(add-to-list
+	    'company-backends '(company-irony-c-headers company-irony)))
+    #+END_SRC
+** RTags
+   #+BEGIN_SRC emacs-lisp
+     (use-package rtags
+       :ensure t)
+     (use-package company-rtags
+       :ensure t)
+
+     (eval-after-load 'company
+     '(add-to-list
+     'company-backends 'company-rtags))
+
+     (use-package helm-rtags
+	:ensure t
+	:config (setq rtags-use-helm t))
+
+    (add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
+    (setq company-backends (delete 'company-semantic company-backends))
+    (eval-after-load 'company
+    '(add-to-list 'company-backends 'company-irony))
+     #+END_SRC
+     
+** Irony 
+   #+BEGIN_SRC emacs-lisp
+   (use-package irony
+       :ensure t)
+
+   (add-hook 'c++-mode-hook 'irony-mode)
+   (add-hook 'c-mode-hook 'irony-mode)
+   (add-hook 'objc-mode-hook 'irony-mode)
+
+   (defun my-irony-mode-hook ()
+   (define-key irony-mode-map [remap completion-at-point]
+    'irony-completion-at-point-async)
+   (define-key irony-mode-map [remap complete-symbol]
+    'irony-completion-at-point-async))
+
+    (add-hook 'irony-mode-hook 'my-irony-mode-hook)
+    (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+    #+END_SRC
+** Flycheck
+   #+BEGIN_SRC emacs-lisp
+     (use-package flycheck
+       :ensure t)
+     (add-hook 'c-mode-hook 'flycheck-mode)
+     (add-hook 'c++-mode-hook 'flycheck-mode)
+
+     (use-package flycheck-rtags
+       :ensure t)
+
+     (defun my-flycheck-rtags-setup ()
+       (flycheck-select-checker 'rtags)
+       (setq-local flycheck-highlighting-mode nil)
+       (setq-local flycheck-check-syntax-automatically nil))
+
+     (add-hook 'c-mode-common-hook #'my-flycheck-rtags-setup)
+
+    (use-package flycheck-irony
+       :ensure t)
+
+    (eval-after-load 'flycheck
+      '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
+    #+END_SRC
+** CMake IDE
+   #+BEGIN_SRC emacs-lisp
+   (use-package cmake-ide
+     :ensure t
+     :config (cmake-ide-setup))
    #+END_SRC

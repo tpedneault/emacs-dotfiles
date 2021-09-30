@@ -44,6 +44,8 @@
   :ensure t
   :config (add-hook 'org-mode-hook (lambda() (org-bullets-mode 1))))
 
+
+
 (use-package evil
   :ensure t
   :config (evil-ex-define-cmd "q" 'kill-this-buffer)
@@ -70,34 +72,6 @@
 ;; Start LSP Mode and YASnippet mode
 (add-hook 'go-mode-hook #'lsp-deferred)
 (add-hook 'go-mode-hook #'yas-minor-mode)
-
-(use-package company
-  :bind (:map company-active-map
-	      ("C-n" . company-select-next)
-	      ("C-p" . company-select-previous))
-  :config
-  (setq company-idle-delay 0.3)
-  (setq company-minimum-prefix-length 1)
-  (global-company-mode t))
-
-(use-package yasnippet
-  :ensure t)
-
-(use-package go-mode
-  :ensure t)
-
-(defun my-go-mode-hook ()
-   ; Call Gofmt before saving
-  (add-hook 'before-save-hook 'gofmt-before-save)
-					; Customize compile command to run go build
-  (if (not (string-match "go" compile-command))
-      (set (make-local-variable 'compile-command)
-	   "go build -v && go test -v && go vet"))
-					; Godef jump key binding
-  (local-set-key (kbd "M-.") 'godef-jump)
-  (local-set-key (kbd "M-*") 'pop-tag-mark)
-  )
-(add-hook 'go-mode-hook 'my-go-mode-hook)
 
 (use-package helm
   :ensure t
@@ -203,3 +177,81 @@
   :ensure t
   :config (projectile-mode +1)
   (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
+
+(use-package yasnippet
+  :ensure t)
+
+(use-package company
+ :ensure t
+ :bind (:map company-active-map
+	     ("C-n" . company-select-next)
+	     ("C-p" . company-select-previous))
+ :config
+ (setq company-idle-delay 0)
+ (setq company-minimum-prefix-length 1)
+ (global-company-mode t))
+
+(use-package company-irony-c-headers
+    :ensure t)
+(eval-after-load 'company
+    '(add-to-list
+	'company-backends '(company-irony-c-headers company-irony)))
+
+(use-package rtags
+   :ensure t)
+ (use-package company-rtags
+   :ensure t)
+
+ (eval-after-load 'company
+ '(add-to-list
+ 'company-backends 'company-rtags))
+
+ (use-package helm-rtags
+    :ensure t
+    :config (setq rtags-use-helm t))
+
+(add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
+(setq company-backends (delete 'company-semantic company-backends))
+(eval-after-load 'company
+'(add-to-list 'company-backends 'company-irony))
+
+(use-package irony
+    :ensure t)
+
+(add-hook 'c++-mode-hook 'irony-mode)
+(add-hook 'c-mode-hook 'irony-mode)
+(add-hook 'objc-mode-hook 'irony-mode)
+
+(defun my-irony-mode-hook ()
+(define-key irony-mode-map [remap completion-at-point]
+ 'irony-completion-at-point-async)
+(define-key irony-mode-map [remap complete-symbol]
+ 'irony-completion-at-point-async))
+
+ (add-hook 'irony-mode-hook 'my-irony-mode-hook)
+ (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+
+(use-package flycheck
+   :ensure t)
+ (add-hook 'c-mode-hook 'flycheck-mode)
+ (add-hook 'c++-mode-hook 'flycheck-mode)
+
+ (use-package flycheck-rtags
+   :ensure t)
+
+ (defun my-flycheck-rtags-setup ()
+   (flycheck-select-checker 'rtags)
+   (setq-local flycheck-highlighting-mode nil)
+   (setq-local flycheck-check-syntax-automatically nil))
+
+ (add-hook 'c-mode-common-hook #'my-flycheck-rtags-setup)
+
+(use-package flycheck-irony
+   :ensure t)
+
+(eval-after-load 'flycheck
+  '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
+
+(use-package cmake-ide
+  :ensure t
+  :config (cmake-ide-setup))
