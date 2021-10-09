@@ -14,6 +14,8 @@
 
 (toggle-scroll-bar -1)
 
+(setq visible-bell 1)
+
 (show-paren-mode 1)
 
 (global-hl-line-mode +1)
@@ -29,64 +31,72 @@
 (setq auto-save-file-name-transforms
       `((".*" ,temporary-file-directory t)))
 
-(add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
-(load-theme 'atom-one-dark t)
+(load-theme 'dracula t)
 
-(set-frame-font "SpaceMono Nerd Font Mono 13" nil t)
+(set-frame-font "Hack 11" nil t)
 
-(use-package mood-line
+(use-package doom-modeline
   :ensure t
-  :config (mood-line-mode))
-(use-package minions
-  :ensure t)
+  :init (doom-modeline-mode 1))
 
 (use-package org-bullets
   :ensure t
   :config (add-hook 'org-mode-hook (lambda() (org-bullets-mode 1))))
 
+(use-package dashboard
+  :ensure t
+  :config (dashboard-setup-startup-hook)
+  (setq dashboard-set-heading-icons t)
+  (setq dashboard-set-file-icons t))
+
 
 
 (use-package evil
   :ensure t
-  :config (evil-ex-define-cmd "q" 'kill-this-buffer)
+  :init
+  (setq evil-want-keybinding nil)
+  :config 
+  (evil-ex-define-cmd "q" 'kill-this-buffer)
   (evil-ex-define-cmd "quit" 'evil-quit)
   (evil-define-key 'normal org-mode-map (kbd "C-SPC") 'org-cycle)
   (evil-mode 1))
 
-(use-package lsp-mode
-  :commands (lsp lsp-deferred)
+(use-package evil-collection
   :ensure t
-  :init (setq lsp-keymap-prefix "C-l")
-  :config (lsp-enable-which-key-integration t))
+  :after evil
+  :config (evil-collection-init))
 
-(use-package lsp-ui
-  :ensure t)
-
-;; Go - lsp-mode
-;; Set up before-save hooks to format buffer and add/delete imports.
-(defun lsp-go-install-save-hooks ()
-  (add-hook 'before-save-hook #'lsp-format-buffer t t)
-  (add-hook 'before-save-hook #'lsp-organize-imports t t))
-(add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
-
-;; Start LSP Mode and YASnippet mode
-(add-hook 'go-mode-hook #'lsp-deferred)
-(add-hook 'go-mode-hook #'yas-minor-mode)
-
-(use-package helm
+(use-package counsel
   :ensure t
-  :config
-  (helm-autoresize-mode 1)
-  (setq helm-autoresize-max-height 30)
-  (helm-mode 1))
+  :after ivy
+  :config (counsel-mode))
 
-(define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
+(use-package ivy
+  :ensure t
+  :defer 0.1
+  :diminish
+  :bind (("C-c C-r" . ivy-resume)
+	 ("C-x B" . ivy-switch-buffer-other-window))
+  :custom
+  (ivy-count-format "(%d/%d) ")
+  (ivy-use-virtual-buffers t)
+  :config (ivy-mode))
 
-(global-set-key (kbd "C-x b") 'helm-buffers-list)
-(global-set-key (kbd "C-x r b") 'helm-bookmarks)
-(global-set-key (kbd "M-x") 'helm-M-x)
-(global-set-key (kbd "M-y") 'helm-show-kill-ring)
-(global-set-key (kbd "C-x C-f") 'helm-find-files)
+(use-package ivy-rich
+  :ensure t
+  :after ivy
+  :init (ivy-rich-mode 1)
+  :custom
+  (ivy-virtual-abbreviate 'full
+			  ivy-rich-switch-buffer-align-virtual-buffer t
+			  ivy-rich-path-style 'abbrev)
+  :config (ivy-set-display-transformer 'ivy-switch-buffer
+				       'ivy-rich-switch-buffer-transformer))
+
+(use-package swiper
+  :after ivy
+  :bind (("C-s" . swiper)
+	 ("C-r" . swiper)))
 
 (use-package treemacs
   :ensure t
@@ -173,6 +183,25 @@
   :ensure t
   :config (treemacs-icons-dired-mode))
 
+(use-package lsp-mode
+  :commands (lsp lsp-deferred)
+  :ensure t
+  :init (setq lsp-keymap-prefix "C-l"))
+
+(use-package lsp-ui
+  :ensure t)
+
+;; Go - lsp-mode
+;; Set up before-save hooks to format buffer and add/delete imports.
+(defun lsp-go-install-save-hooks ()
+  (add-hook 'before-save-hook #'lsp-format-buffer t t)
+  (add-hook 'before-save-hook #'lsp-organize-imports t t))
+(add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
+
+;; Start LSP Mode and YASnippet mode
+(add-hook 'go-mode-hook #'lsp-deferred)
+(add-hook 'go-mode-hook #'yas-minor-mode)
+
 (use-package projectile 
   :ensure t
   :config (projectile-mode +1)
@@ -182,72 +211,72 @@
   :ensure t)
 
 (use-package company
- :ensure t
- :bind (:map company-active-map
-	     ("C-n" . company-select-next)
-	     ("C-p" . company-select-previous))
- :config
- (setq company-idle-delay 0)
- (setq company-minimum-prefix-length 1)
- (global-company-mode t))
+  :ensure t
+  :bind (:map company-active-map
+	      ("C-n" . company-select-next)
+	      ("C-p" . company-select-previous))
+  :config
+  (setq company-idle-delay 0)
+  (setq company-minimum-prefix-length 1)
+  (global-company-mode t))
 
 (use-package company-irony-c-headers
-    :ensure t)
+  :ensure t)
 (eval-after-load 'company
-    '(add-to-list
-	'company-backends '(company-irony-c-headers company-irony)))
+  '(add-to-list
+    'company-backends '(company-irony-c-headers company-irony)))
 
 (use-package rtags
-   :ensure t)
- (use-package company-rtags
-   :ensure t)
+  :ensure t)
+(use-package company-rtags
+  :ensure t)
 
- (eval-after-load 'company
- '(add-to-list
- 'company-backends 'company-rtags))
+(eval-after-load 'company
+  '(add-to-list
+    'company-backends 'company-rtags))
 
- (use-package helm-rtags
-    :ensure t
-    :config (setq rtags-use-helm t))
+(use-package helm-rtags
+  :ensure t
+  :config (setq rtags-use-helm t))
 
 (add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
 (setq company-backends (delete 'company-semantic company-backends))
 (eval-after-load 'company
-'(add-to-list 'company-backends 'company-irony))
+  '(add-to-list 'company-backends 'company-irony))
 
 (use-package irony
-    :ensure t)
+  :ensure t)
 
 (add-hook 'c++-mode-hook 'irony-mode)
 (add-hook 'c-mode-hook 'irony-mode)
 (add-hook 'objc-mode-hook 'irony-mode)
 
 (defun my-irony-mode-hook ()
-(define-key irony-mode-map [remap completion-at-point]
- 'irony-completion-at-point-async)
-(define-key irony-mode-map [remap complete-symbol]
- 'irony-completion-at-point-async))
+  (define-key irony-mode-map [remap completion-at-point]
+    'irony-completion-at-point-async)
+  (define-key irony-mode-map [remap complete-symbol]
+    'irony-completion-at-point-async))
 
- (add-hook 'irony-mode-hook 'my-irony-mode-hook)
- (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+(add-hook 'irony-mode-hook 'my-irony-mode-hook)
+(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
 
 (use-package flycheck
-   :ensure t)
- (add-hook 'c-mode-hook 'flycheck-mode)
- (add-hook 'c++-mode-hook 'flycheck-mode)
+  :ensure t)
+(add-hook 'c-mode-hook 'flycheck-mode)
+(add-hook 'c++-mode-hook 'flycheck-mode)
 
- (use-package flycheck-rtags
-   :ensure t)
+(use-package flycheck-rtags
+  :ensure t)
 
- (defun my-flycheck-rtags-setup ()
-   (flycheck-select-checker 'rtags)
-   (setq-local flycheck-highlighting-mode nil)
-   (setq-local flycheck-check-syntax-automatically nil))
+(defun my-flycheck-rtags-setup ()
+  (flycheck-select-checker 'rtags)
+  (setq-local flycheck-highlighting-mode nil)
+  (setq-local flycheck-check-syntax-automatically nil))
 
- (add-hook 'c-mode-common-hook #'my-flycheck-rtags-setup)
+(add-hook 'c-mode-common-hook #'my-flycheck-rtags-setup)
 
 (use-package flycheck-irony
-   :ensure t)
+  :ensure t)
 
 (eval-after-load 'flycheck
   '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))

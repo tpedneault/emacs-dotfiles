@@ -29,6 +29,10 @@
    #+BEGIN_SRC emacs-lisp
      (toggle-scroll-bar -1)
    #+END_SRC 
+** Disable bell
+   #+BEGIN_SRC emacs-lisp
+     (setq visible-bell 1)
+   #+END_SRC 
 ** Show matching parenthesis 
    #+BEGIN_SRC emacs-lisp
      (show-paren-mode 1)
@@ -59,20 +63,17 @@
 * UI 
 ** Theme
    #+BEGIN_SRC emacs-lisp
-     (add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
-     (load-theme 'atom-one-dark t)
+     (load-theme 'dracula t)
    #+END_SRC
 ** Font 
    #+BEGIN_SRC emacs-lisp
-     (set-frame-font "SpaceMono Nerd Font Mono 13" nil t)
+     (set-frame-font "Hack 11" nil t)
    #+END_SRC
 ** Modeline 
    #+BEGIN_SRC emacs-lisp
-     (use-package mood-line
+     (use-package doom-modeline
        :ensure t
-       :config (mood-line-mode))
-     (use-package minions
-       :ensure t)
+       :init (doom-modeline-mode 1))
    #+END_SRC
 ** Org-Mode
 *** Bullets
@@ -81,6 +82,14 @@
 	:ensure t
 	:config (add-hook 'org-mode-hook (lambda() (org-bullets-mode 1))))
     #+END_SRC
+** Dashboard
+   #+BEGIN_SRC emacs-lisp
+     (use-package dashboard
+       :ensure t
+       :config (dashboard-setup-startup-hook)
+       (setq dashboard-set-heading-icons t)
+       (setq dashboard-set-file-icons t))
+   #+END_SRC
 * Modes
 ** C/C++ Mode
    #+BEGIN_SRC emacs-lisp
@@ -91,49 +100,52 @@
    #+BEGIN_SRC emacs-lisp
      (use-package evil
        :ensure t
-       :config (evil-ex-define-cmd "q" 'kill-this-buffer)
+       :init
+       (setq evil-want-keybinding nil)
+       :config 
+       (evil-ex-define-cmd "q" 'kill-this-buffer)
        (evil-ex-define-cmd "quit" 'evil-quit)
        (evil-define-key 'normal org-mode-map (kbd "C-SPC") 'org-cycle)
        (evil-mode 1))
-   #+END_SRC
-** LSP Mode 
-   #+BEGIN_SRC emacs-lisp
-     (use-package lsp-mode
-       :commands (lsp lsp-deferred)
+
+     (use-package evil-collection
        :ensure t
-       :init (setq lsp-keymap-prefix "C-l")
-       :config (lsp-enable-which-key-integration t))
-
-     (use-package lsp-ui
-       :ensure t)
-
-     ;; Go - lsp-mode
-     ;; Set up before-save hooks to format buffer and add/delete imports.
-     (defun lsp-go-install-save-hooks ()
-       (add-hook 'before-save-hook #'lsp-format-buffer t t)
-       (add-hook 'before-save-hook #'lsp-organize-imports t t))
-     (add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
-
-     ;; Start LSP Mode and YASnippet mode
-     (add-hook 'go-mode-hook #'lsp-deferred)
-     (add-hook 'go-mode-hook #'yas-minor-mode)
+       :after evil
+       :config (evil-collection-init))
    #+END_SRC
-** Helm 
+** Ivy
    #+BEGIN_SRC emacs-lisp
-     (use-package helm
+     (use-package counsel
        :ensure t
-       :config
-       (helm-autoresize-mode 1)
-       (setq helm-autoresize-max-height 30)
-       (helm-mode 1))
+       :after ivy
+       :config (counsel-mode))
 
-     (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
+     (use-package ivy
+       :ensure t
+       :defer 0.1
+       :diminish
+       :bind (("C-c C-r" . ivy-resume)
+	      ("C-x B" . ivy-switch-buffer-other-window))
+       :custom
+       (ivy-count-format "(%d/%d) ")
+       (ivy-use-virtual-buffers t)
+       :config (ivy-mode))
 
-     (global-set-key (kbd "C-x b") 'helm-buffers-list)
-     (global-set-key (kbd "C-x r b") 'helm-bookmarks)
-     (global-set-key (kbd "M-x") 'helm-M-x)
-     (global-set-key (kbd "M-y") 'helm-show-kill-ring)
-     (global-set-key (kbd "C-x C-f") 'helm-find-files)
+     (use-package ivy-rich
+       :ensure t
+       :after ivy
+       :init (ivy-rich-mode 1)
+       :custom
+       (ivy-virtual-abbreviate 'full
+			       ivy-rich-switch-buffer-align-virtual-buffer t
+			       ivy-rich-path-style 'abbrev)
+       :config (ivy-set-display-transformer 'ivy-switch-buffer
+					    'ivy-rich-switch-buffer-transformer))
+
+     (use-package swiper
+       :after ivy
+       :bind (("C-s" . swiper)
+	      ("C-r" . swiper)))
    #+END_SRC
 ** Treemacs 
    #+BEGIN_SRC emacs-lisp
@@ -223,103 +235,125 @@
        :config (treemacs-icons-dired-mode))
    #+END_SRC
    
-** Projectile
-   #+BEGIN_SRC emacs-lisp
-     (use-package projectile 
-       :ensure t
-       :config (projectile-mode +1)
-       (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
-   #+END_SRC
-** YASnippet
-   #+BEGIN_SRC emacs-lisp
-     (use-package yasnippet
-       :ensure t)
-    #+END_SRC
-** Company 
-   #+BEGIN_SRC emacs-lisp
-     (use-package company
-      :ensure t
-      :bind (:map company-active-map
-		  ("C-n" . company-select-next)
-		  ("C-p" . company-select-previous))
-      :config
-      (setq company-idle-delay 0)
-      (setq company-minimum-prefix-length 1)
-      (global-company-mode t))
-     #+END_SRC
-*** Company Irony C Headers
+** Programming
+*** LSP Mode 
     #+BEGIN_SRC emacs-lisp
-    (use-package company-irony-c-headers
+      (use-package lsp-mode
+	:commands (lsp lsp-deferred)
+	:ensure t
+	:init (setq lsp-keymap-prefix "C-l"))
+
+      (use-package lsp-ui
 	:ensure t)
-    (eval-after-load 'company
-	'(add-to-list
-	    'company-backends '(company-irony-c-headers company-irony)))
+
+      ;; Go - lsp-mode
+      ;; Set up before-save hooks to format buffer and add/delete imports.
+      (defun lsp-go-install-save-hooks ()
+	(add-hook 'before-save-hook #'lsp-format-buffer t t)
+	(add-hook 'before-save-hook #'lsp-organize-imports t t))
+      (add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
+
+      ;; Start LSP Mode and YASnippet mode
+      (add-hook 'go-mode-hook #'lsp-deferred)
+      (add-hook 'go-mode-hook #'yas-minor-mode)
     #+END_SRC
-** RTags
-   #+BEGIN_SRC emacs-lisp
-     (use-package rtags
-       :ensure t)
-     (use-package company-rtags
-       :ensure t)
+*** Projectile (Project Manager)
+    #+BEGIN_SRC emacs-lisp
+      (use-package projectile 
+	:ensure t
+	:config (projectile-mode +1)
+	(define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
+    #+END_SRC
+*** YASnippet (Code Snippets)
+    #+BEGIN_SRC emacs-lisp
+      (use-package yasnippet
+	:ensure t)
+    #+END_SRC
+*** Company (Auto completion) 
+    #+BEGIN_SRC emacs-lisp
+      (use-package company
+	:ensure t
+	:bind (:map company-active-map
+		    ("C-n" . company-select-next)
+		    ("C-p" . company-select-previous))
+	:config
+	(setq company-idle-delay 0)
+	(setq company-minimum-prefix-length 1)
+	(global-company-mode t))
+    #+END_SRC
+**** Company Irony C Headers
+     #+BEGIN_SRC emacs-lisp
+       (use-package company-irony-c-headers
+	 :ensure t)
+       (eval-after-load 'company
+	 '(add-to-list
+	   'company-backends '(company-irony-c-headers company-irony)))
+     #+END_SRC
+*** RTags
+    #+BEGIN_SRC emacs-lisp
+      (use-package rtags
+	:ensure t)
+      (use-package company-rtags
+	:ensure t)
 
-     (eval-after-load 'company
-     '(add-to-list
-     'company-backends 'company-rtags))
+      (eval-after-load 'company
+	'(add-to-list
+	  'company-backends 'company-rtags))
 
-     (use-package helm-rtags
+      (use-package helm-rtags
 	:ensure t
 	:config (setq rtags-use-helm t))
 
-    (add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
-    (setq company-backends (delete 'company-semantic company-backends))
-    (eval-after-load 'company
-    '(add-to-list 'company-backends 'company-irony))
-     #+END_SRC
-     
-** Irony 
-   #+BEGIN_SRC emacs-lisp
-   (use-package irony
-       :ensure t)
-
-   (add-hook 'c++-mode-hook 'irony-mode)
-   (add-hook 'c-mode-hook 'irony-mode)
-   (add-hook 'objc-mode-hook 'irony-mode)
-
-   (defun my-irony-mode-hook ()
-   (define-key irony-mode-map [remap completion-at-point]
-    'irony-completion-at-point-async)
-   (define-key irony-mode-map [remap complete-symbol]
-    'irony-completion-at-point-async))
-
-    (add-hook 'irony-mode-hook 'my-irony-mode-hook)
-    (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+      (add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
+      (setq company-backends (delete 'company-semantic company-backends))
+      (eval-after-load 'company
+	'(add-to-list 'company-backends 'company-irony))
     #+END_SRC
-** Flycheck
-   #+BEGIN_SRC emacs-lisp
-     (use-package flycheck
-       :ensure t)
-     (add-hook 'c-mode-hook 'flycheck-mode)
-     (add-hook 'c++-mode-hook 'flycheck-mode)
 
-     (use-package flycheck-rtags
-       :ensure t)
+*** Irony 
+    #+BEGIN_SRC emacs-lisp
+      (use-package irony
+	:ensure t)
 
-     (defun my-flycheck-rtags-setup ()
-       (flycheck-select-checker 'rtags)
-       (setq-local flycheck-highlighting-mode nil)
-       (setq-local flycheck-check-syntax-automatically nil))
+      (add-hook 'c++-mode-hook 'irony-mode)
+      (add-hook 'c-mode-hook 'irony-mode)
+      (add-hook 'objc-mode-hook 'irony-mode)
 
-     (add-hook 'c-mode-common-hook #'my-flycheck-rtags-setup)
+      (defun my-irony-mode-hook ()
+	(define-key irony-mode-map [remap completion-at-point]
+	  'irony-completion-at-point-async)
+	(define-key irony-mode-map [remap complete-symbol]
+	  'irony-completion-at-point-async))
 
-    (use-package flycheck-irony
-       :ensure t)
-
-    (eval-after-load 'flycheck
-      '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
+      (add-hook 'irony-mode-hook 'my-irony-mode-hook)
+      (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
     #+END_SRC
-** CMake IDE
-   #+BEGIN_SRC emacs-lisp
-   (use-package cmake-ide
-     :ensure t
-     :config (cmake-ide-setup))
-   #+END_SRC
+*** Flycheck (Syntax Checker)
+    #+BEGIN_SRC emacs-lisp
+      (use-package flycheck
+	:ensure t)
+      (add-hook 'c-mode-hook 'flycheck-mode)
+      (add-hook 'c++-mode-hook 'flycheck-mode)
+
+      (use-package flycheck-rtags
+	:ensure t)
+
+      (defun my-flycheck-rtags-setup ()
+	(flycheck-select-checker 'rtags)
+	(setq-local flycheck-highlighting-mode nil)
+	(setq-local flycheck-check-syntax-automatically nil))
+
+      (add-hook 'c-mode-common-hook #'my-flycheck-rtags-setup)
+
+      (use-package flycheck-irony
+	:ensure t)
+
+      (eval-after-load 'flycheck
+	'(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
+    #+END_SRC
+*** CMake IDE
+    #+BEGIN_SRC emacs-lisp
+      (use-package cmake-ide
+	:ensure t
+	:config (cmake-ide-setup))
+    #+END_SRC
