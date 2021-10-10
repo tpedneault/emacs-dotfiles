@@ -2,6 +2,7 @@
 
 * General Settings
 ** Set package archives
+
    #+BEGIN_SRC emacs-lisp
      (setq package-archives
 	   '(("elpy" . "http://jorgenschaefer.github.io/packages/")
@@ -9,80 +10,108 @@
 	     ("gnu" . "http://elpa.gnu.org/packages/")
 	     ("melpa-stable" . "https://stable.melpa.org/packages/")))
    #+END_SRC 
+
 ** Set default tab width
+
    #+BEGIN_SRC emacs-lisp
      (setq default-tab-width 2)
    #+END_SRC 
+
 ** Don't show startup messages
+
    #+BEGIN_SRC emacs-lisp
      (setq inhibit-startup-screen t)
    #+END_SRC 
+
 ** Don't show toolbar
+
    #+BEGIN_SRC emacs-lisp
      (tool-bar-mode -1)
    #+END_SRC 
+
 ** Don't show menu
+
    #+BEGIN_SRC emacs-lisp
      (menu-bar-mode -1)
    #+END_SRC 
+
 ** Don't show scrollbar
+
    #+BEGIN_SRC emacs-lisp
      (toggle-scroll-bar -1)
    #+END_SRC 
+
 ** Disable bell
+
    #+BEGIN_SRC emacs-lisp
      (setq visible-bell 1)
    #+END_SRC 
+
 ** Show matching parenthesis 
+
    #+BEGIN_SRC emacs-lisp
      (show-paren-mode 1)
    #+END_SRC 
+
 ** Enable global line highlight mode
+
    #+BEGIN_SRC emacs-lisp
      (global-hl-line-mode +1)
    #+END_SRC 
+
 ** Enable global line number mode
+
    #+BEGIN_SRC emacs-lisp
      (global-display-line-numbers-mode)
    #+END_SRC 
-** Disable auto indentation
-   #+begin_src emacs-lisp
-					     ;(when (fboundp 'electric-indent-mode) (electric-indent-mode -1))
-   #+end_src
+
 ** Create command to reload configuration 
-   #+begin_src emacs-lisp
+
+   #+BEGIN_SRC emacs-lisp
      (defun reload-config () (interactive) (load-file "~/.emacs.d/init.el"))
-   #+end_src
+   #+END_SRC
+
 ** Store backup / autosave files in tmp
+
    #+BEGIN_SRC emacs-lisp
      (setq backup-directory-alist
 	   `((".*" . ,temporary-file-directory)))
      (setq auto-save-file-name-transforms
 	   `((".*" ,temporary-file-directory t)))
    #+END_SRC
+
 * UI 
 ** Theme
+
    #+BEGIN_SRC emacs-lisp
-     (load-theme 'dracula t)
+     (load-theme 'zenburn t)
    #+END_SRC
+   
 ** Font 
+
    #+BEGIN_SRC emacs-lisp
      (set-frame-font "Hack 11" nil t)
    #+END_SRC
+
 ** Modeline 
+
    #+BEGIN_SRC emacs-lisp
      (use-package doom-modeline
        :ensure t
        :init (doom-modeline-mode 1))
    #+END_SRC
+
 ** Org-Mode
 *** Bullets
+
     #+BEGIN_SRC emacs-lisp
       (use-package org-bullets
 	:ensure t
 	:config (add-hook 'org-mode-hook (lambda() (org-bullets-mode 1))))
     #+END_SRC
+
 ** Dashboard
+
    #+BEGIN_SRC emacs-lisp
      (use-package dashboard
        :ensure t
@@ -90,13 +119,11 @@
        (setq dashboard-set-heading-icons t)
        (setq dashboard-set-file-icons t))
    #+END_SRC
-* Modes
-** C/C++ Mode
-   #+BEGIN_SRC emacs-lisp
 
-   #+END_SRC
+* Modes
 * General Packages
 ** Evil 
+
    #+BEGIN_SRC emacs-lisp
      (use-package evil
        :ensure t
@@ -113,7 +140,9 @@
        :after evil
        :config (evil-collection-init))
    #+END_SRC
+
 ** Ivy
+
    #+BEGIN_SRC emacs-lisp
      (use-package counsel
        :ensure t
@@ -147,7 +176,9 @@
        :bind (("C-s" . swiper)
 	      ("C-r" . swiper)))
    #+END_SRC
+
 ** Treemacs 
+
    #+BEGIN_SRC emacs-lisp
      (use-package treemacs
        :ensure t
@@ -235,125 +266,88 @@
        :config (treemacs-icons-dired-mode))
    #+END_SRC
    
+** Which Key
+   
+   This package displays available keybindings in a popup window.
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package which-key
+       :ensure t
+       :config (which-key-mode))
+   #+END_SRC
+
 ** Programming
-*** LSP Mode 
+
+*** LSP Mode
+
+    Set up the client for Language Server Protocol. Used to provide IDE like functionality.
+
+    To add an lsp server, use the *M-x lsp-install-server* to install the required packages, or follow documentation.
+
+    documentation: https://emacs-lsp.github.io/lsp-mode/page/languages/
+
+    LSP Keymap: C-c l
+
     #+BEGIN_SRC emacs-lisp
+
       (use-package lsp-mode
-	:commands (lsp lsp-deferred)
-	:ensure t
-	:init (setq lsp-keymap-prefix "C-l"))
+        :ensure t
+        :init (setq lsp-keymap-prefix "C-c l")
+        :hook (lsp-mode . lsp-enable-which-key-integration)
+        :commands (lsp lsp-deferred))
+
+    #+END_SRC
+    
+    Some missing IDE functionality includes: fancy sideline, popup documentation, code peeking, etc.
+    Including the lsp-ui package adds these to Emacs.
+
+    #+BEGIN_SRC emacs-lisp
 
       (use-package lsp-ui
-	:ensure t)
+        :ensure t
+        :after lsp
+        :commands lsp-ui-mode)
 
-      ;; Go - lsp-mode
-      ;; Set up before-save hooks to format buffer and add/delete imports.
-      (defun lsp-go-install-save-hooks ()
-	(add-hook 'before-save-hook #'lsp-format-buffer t t)
-	(add-hook 'before-save-hook #'lsp-organize-imports t t))
-      (add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
-
-      ;; Start LSP Mode and YASnippet mode
-      (add-hook 'go-mode-hook #'lsp-deferred)
-      (add-hook 'go-mode-hook #'yas-minor-mode)
     #+END_SRC
-*** Projectile (Project Manager)
+    
+    Since we are using Ivy, we need to enable Ivy support.
+
     #+BEGIN_SRC emacs-lisp
-      (use-package projectile 
+
+      (use-package lsp-ivy
 	:ensure t
-	:config (projectile-mode +1)
-	(define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
-    #+END_SRC
-*** YASnippet (Code Snippets)
-    #+BEGIN_SRC emacs-lisp
-      (use-package yasnippet
-	:ensure t)
-    #+END_SRC
-*** Company (Auto completion) 
-    #+BEGIN_SRC emacs-lisp
-      (use-package company
-	:ensure t
-	:bind (:map company-active-map
-		    ("C-n" . company-select-next)
-		    ("C-p" . company-select-previous))
-	:config
-	(setq company-idle-delay 0)
-	(setq company-minimum-prefix-length 1)
-	(global-company-mode t))
-    #+END_SRC
-**** Company Irony C Headers
-     #+BEGIN_SRC emacs-lisp
-       (use-package company-irony-c-headers
-	 :ensure t)
-       (eval-after-load 'company
-	 '(add-to-list
-	   'company-backends '(company-irony-c-headers company-irony)))
-     #+END_SRC
-*** RTags
-    #+BEGIN_SRC emacs-lisp
-      (use-package rtags
-	:ensure t)
-      (use-package company-rtags
-	:ensure t)
+	:commands lsp-ivy-workspace-symbol)
 
-      (eval-after-load 'company
-	'(add-to-list
-	  'company-backends 'company-rtags))
+    #+END_SRC
+    
+    As well as enable Treemacs support.
 
-      (use-package helm-rtags
-	:ensure t
-	:config (setq rtags-use-helm t))
+    #+BEGIN_SRC emacs-lisp
 
-      (add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
-      (setq company-backends (delete 'company-semantic company-backends))
-      (eval-after-load 'company
-	'(add-to-list 'company-backends 'company-irony))
+      (use-package lsp-treemacs 
+	:ensure t 
+	:commands lsp-treemacs-errors-list)
+
     #+END_SRC
 
-*** Irony 
+    Other packages can be added here if required (ex: dap-mode support for debugger)
+
+
+*** Syntax Checking
+
+    We are going to be using FlyCheck. This package provides syntax checking with minimal configuration required.
+    Another alternative available on MELPA is FlyMake.
+
+    To see which languages are supported: https://www.flycheck.org/en/latest/languages.html#flycheck-languages
+
     #+BEGIN_SRC emacs-lisp
-      (use-package irony
-	:ensure t)
 
-      (add-hook 'c++-mode-hook 'irony-mode)
-      (add-hook 'c-mode-hook 'irony-mode)
-      (add-hook 'objc-mode-hook 'irony-mode)
-
-      (defun my-irony-mode-hook ()
-	(define-key irony-mode-map [remap completion-at-point]
-	  'irony-completion-at-point-async)
-	(define-key irony-mode-map [remap complete-symbol]
-	  'irony-completion-at-point-async))
-
-      (add-hook 'irony-mode-hook 'my-irony-mode-hook)
-      (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
-    #+END_SRC
-*** Flycheck (Syntax Checker)
-    #+BEGIN_SRC emacs-lisp
       (use-package flycheck
-	:ensure t)
-      (add-hook 'c-mode-hook 'flycheck-mode)
-      (add-hook 'c++-mode-hook 'flycheck-mode)
-
-      (use-package flycheck-rtags
-	:ensure t)
-
-      (defun my-flycheck-rtags-setup ()
-	(flycheck-select-checker 'rtags)
-	(setq-local flycheck-highlighting-mode nil)
-	(setq-local flycheck-check-syntax-automatically nil))
-
-      (add-hook 'c-mode-common-hook #'my-flycheck-rtags-setup)
-
-      (use-package flycheck-irony
-	:ensure t)
-
-      (eval-after-load 'flycheck
-	'(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
-    #+END_SRC
-*** CMake IDE
-    #+BEGIN_SRC emacs-lisp
-      (use-package cmake-ide
 	:ensure t
-	:config (cmake-ide-setup))
+	:init (global-flycheck-mode))
+
     #+END_SRC
+
+**** Language Specific Configuration
+
+***** C/C++

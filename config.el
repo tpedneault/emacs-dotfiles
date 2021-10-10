@@ -22,8 +22,6 @@
 
 (global-display-line-numbers-mode)
 
-;(when (fboundp 'electric-indent-mode) (electric-indent-mode -1))
-
 (defun reload-config () (interactive) (load-file "~/.emacs.d/init.el"))
 
 (setq backup-directory-alist
@@ -31,7 +29,7 @@
 (setq auto-save-file-name-transforms
       `((".*" ,temporary-file-directory t)))
 
-(load-theme 'dracula t)
+(load-theme 'zenburn t)
 
 (set-frame-font "Hack 11" nil t)
 
@@ -48,8 +46,6 @@
   :config (dashboard-setup-startup-hook)
   (setq dashboard-set-heading-icons t)
   (setq dashboard-set-file-icons t))
-
-
 
 (use-package evil
   :ensure t
@@ -183,104 +179,29 @@
   :ensure t
   :config (treemacs-icons-dired-mode))
 
-(use-package lsp-mode
-  :commands (lsp lsp-deferred)
+(use-package which-key
   :ensure t
-  :init (setq lsp-keymap-prefix "C-l"))
+  :config (which-key-mode))
+
+(use-package lsp-mode
+  :ensure t
+  :init (setq lsp-keymap-prefix "C-c l")
+  :hook (lsp-mode . lsp-enable-which-key-integration)
+  :commands (lsp lsp-deferred))
 
 (use-package lsp-ui
-  :ensure t)
-
-;; Go - lsp-mode
-;; Set up before-save hooks to format buffer and add/delete imports.
-(defun lsp-go-install-save-hooks ()
-  (add-hook 'before-save-hook #'lsp-format-buffer t t)
-  (add-hook 'before-save-hook #'lsp-organize-imports t t))
-(add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
-
-;; Start LSP Mode and YASnippet mode
-(add-hook 'go-mode-hook #'lsp-deferred)
-(add-hook 'go-mode-hook #'yas-minor-mode)
-
-(use-package projectile 
   :ensure t
-  :config (projectile-mode +1)
-  (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
+  :after lsp
+  :commands lsp-ui-mode)
 
-(use-package yasnippet
-  :ensure t)
-
-(use-package company
+(use-package lsp-ivy
   :ensure t
-  :bind (:map company-active-map
-	      ("C-n" . company-select-next)
-	      ("C-p" . company-select-previous))
-  :config
-  (setq company-idle-delay 0)
-  (setq company-minimum-prefix-length 1)
-  (global-company-mode t))
+  :commands lsp-ivy-workspace-symbol)
 
-(use-package company-irony-c-headers
-  :ensure t)
-(eval-after-load 'company
-  '(add-to-list
-    'company-backends '(company-irony-c-headers company-irony)))
-
-(use-package rtags
-  :ensure t)
-(use-package company-rtags
-  :ensure t)
-
-(eval-after-load 'company
-  '(add-to-list
-    'company-backends 'company-rtags))
-
-(use-package helm-rtags
-  :ensure t
-  :config (setq rtags-use-helm t))
-
-(add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
-(setq company-backends (delete 'company-semantic company-backends))
-(eval-after-load 'company
-  '(add-to-list 'company-backends 'company-irony))
-
-(use-package irony
-  :ensure t)
-
-(add-hook 'c++-mode-hook 'irony-mode)
-(add-hook 'c-mode-hook 'irony-mode)
-(add-hook 'objc-mode-hook 'irony-mode)
-
-(defun my-irony-mode-hook ()
-  (define-key irony-mode-map [remap completion-at-point]
-    'irony-completion-at-point-async)
-  (define-key irony-mode-map [remap complete-symbol]
-    'irony-completion-at-point-async))
-
-(add-hook 'irony-mode-hook 'my-irony-mode-hook)
-(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+(use-package lsp-treemacs 
+  :ensure t 
+  :commands lsp-treemacs-errors-list)
 
 (use-package flycheck
-  :ensure t)
-(add-hook 'c-mode-hook 'flycheck-mode)
-(add-hook 'c++-mode-hook 'flycheck-mode)
-
-(use-package flycheck-rtags
-  :ensure t)
-
-(defun my-flycheck-rtags-setup ()
-  (flycheck-select-checker 'rtags)
-  (setq-local flycheck-highlighting-mode nil)
-  (setq-local flycheck-check-syntax-automatically nil))
-
-(add-hook 'c-mode-common-hook #'my-flycheck-rtags-setup)
-
-(use-package flycheck-irony
-  :ensure t)
-
-(eval-after-load 'flycheck
-  '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
-
-(use-package cmake-ide
   :ensure t
-  :config (cmake-ide-setup))
+  :init (global-flycheck-mode))
