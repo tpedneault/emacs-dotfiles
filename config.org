@@ -1,130 +1,196 @@
 #+TITLE: Emacs Configuration
 
 * General Settings
+
 ** Set package archives
 
    #+BEGIN_SRC emacs-lisp
+
      (setq package-archives
 	   '(("elpy" . "http://jorgenschaefer.github.io/packages/")
 	     ("melpa" . "https://melpa.org/packages/")
 	     ("gnu" . "http://elpa.gnu.org/packages/")
 	     ("melpa-stable" . "https://stable.melpa.org/packages/")))
-   #+END_SRC 
 
+   #+END_SRC 
+   
 ** Set default tab width
 
    #+BEGIN_SRC emacs-lisp
+
      (setq default-tab-width 2)
+
    #+END_SRC 
 
 ** Don't show startup messages
 
    #+BEGIN_SRC emacs-lisp
+
      (setq inhibit-startup-screen t)
+
    #+END_SRC 
 
 ** Don't show toolbar
 
    #+BEGIN_SRC emacs-lisp
+
      (tool-bar-mode -1)
+
    #+END_SRC 
 
 ** Don't show menu
 
    #+BEGIN_SRC emacs-lisp
+
      (menu-bar-mode -1)
+
    #+END_SRC 
 
 ** Don't show scrollbar
 
    #+BEGIN_SRC emacs-lisp
+
      (toggle-scroll-bar -1)
+
    #+END_SRC 
 
 ** Disable bell
 
    #+BEGIN_SRC emacs-lisp
-     (setq visible-bell 1)
+
+     (setq visible-bell nil)
+
    #+END_SRC 
 
 ** Show matching parenthesis 
 
    #+BEGIN_SRC emacs-lisp
+
      (show-paren-mode 1)
+
    #+END_SRC 
 
 ** Enable global line highlight mode
 
    #+BEGIN_SRC emacs-lisp
+
      (global-hl-line-mode +1)
+
    #+END_SRC 
 
 ** Enable global line number mode
 
    #+BEGIN_SRC emacs-lisp
+
      (global-display-line-numbers-mode)
+
    #+END_SRC 
 
 ** Create command to reload configuration 
 
    #+BEGIN_SRC emacs-lisp
+
      (defun reload-config () (interactive) (load-file "~/.emacs.d/init.el"))
+
    #+END_SRC
 
 ** Store backup / autosave files in tmp
 
    #+BEGIN_SRC emacs-lisp
+
      (setq backup-directory-alist
 	   `((".*" . ,temporary-file-directory)))
      (setq auto-save-file-name-transforms
 	   `((".*" ,temporary-file-directory t)))
-   #+END_SRC
 
+   #+END_SRC
+   
+** Use PATH variable from shell
+
+   #+BEGIN_SRC emacs-lisp
+
+     (use-package exec-path-from-shell
+       :ensure t
+       :config (exec-path-from-shell-initialize))
+
+   #+END_SRC
+   
+   
 * UI 
+
 ** Theme
 
    #+BEGIN_SRC emacs-lisp
-     (load-theme 'zenburn t)
+
+     (use-package color-theme-sanityinc-tomorrow
+       :ensure t
+       :config
+       (load-theme 'sanityinc-tomorrow-night t))
+
    #+END_SRC
    
 ** Font 
 
    #+BEGIN_SRC emacs-lisp
-     (set-frame-font "Hack 11" nil t)
+
+     (set-frame-font "Hack Nerd Font 12" nil t)
+
    #+END_SRC
 
 ** Modeline 
 
    #+BEGIN_SRC emacs-lisp
-     (use-package doom-modeline
+
+     (use-package telephone-line
        :ensure t
-       :init (doom-modeline-mode 1))
+       :init 
+       (setq telephone-line-lhs
+	     '((evil   . (telephone-line-evil-tag-segment))
+	       (accent . (telephone-line-vc-segment
+			  telephone-line-erc-modified-channels-segment
+			  telephone-line-process-segment))
+	       (nil    . (telephone-line-minor-mode-segment
+			  telephone-line-buffer-segment))))
+       (setq telephone-line-rhs
+	     '((nil    . (telephone-line-misc-info-segment))
+	       (accent . (telephone-line-major-mode-segment))
+	       (evil   . (telephone-line-airline-position-segment))))
+
+       :config (telephone-line-mode))
+
    #+END_SRC
 
 ** Org-Mode
 *** Bullets
 
     #+BEGIN_SRC emacs-lisp
+
       (use-package org-bullets
 	:ensure t
 	:config (add-hook 'org-mode-hook (lambda() (org-bullets-mode 1))))
+
     #+END_SRC
 
 ** Dashboard
 
    #+BEGIN_SRC emacs-lisp
+
      (use-package dashboard
        :ensure t
        :config (dashboard-setup-startup-hook)
+       (setq dashboard-startup-banner "~/.emacs.d/glasses-with-mustache.png")
        (setq dashboard-set-heading-icons t)
        (setq dashboard-set-file-icons t))
+
    #+END_SRC
 
-* Modes
+   
 * General Packages
+
 ** Evil 
 
    #+BEGIN_SRC emacs-lisp
+
      (use-package evil
        :ensure t
        :init
@@ -139,11 +205,13 @@
        :ensure t
        :after evil
        :config (evil-collection-init))
+
    #+END_SRC
 
 ** Ivy
 
    #+BEGIN_SRC emacs-lisp
+
      (use-package counsel
        :ensure t
        :after ivy
@@ -162,24 +230,28 @@
 
      (use-package ivy-rich
        :ensure t
-       :after ivy
-       :init (ivy-rich-mode 1)
-       :custom
-       (ivy-virtual-abbreviate 'full
-			       ivy-rich-switch-buffer-align-virtual-buffer t
-			       ivy-rich-path-style 'abbrev)
-       :config (ivy-set-display-transformer 'ivy-switch-buffer
-					    'ivy-rich-switch-buffer-transformer))
+       :init (ivy-rich-mode 1))
+
+     (use-package all-the-icons-ivy-rich
+       :ensure t
+       :init (all-the-icons-ivy-rich-mode 1))
 
      (use-package swiper
        :after ivy
        :bind (("C-s" . swiper)
 	      ("C-r" . swiper)))
+
+     (setq ivy-virtual-abbreviate 'abbreviate
+	   ivy-rich-path-style 'abbrev
+	   all-the-icons-ivy-rich-icon-size 1.1)
+
+
    #+END_SRC
 
 ** Treemacs 
 
    #+BEGIN_SRC emacs-lisp
+
      (use-package treemacs
        :ensure t
        :defer t
@@ -264,6 +336,7 @@
        :after (treemacs dired)
        :ensure t
        :config (treemacs-icons-dired-mode))
+
    #+END_SRC
    
 ** Which Key
@@ -271,83 +344,213 @@
    This package displays available keybindings in a popup window.
 
    #+BEGIN_SRC emacs-lisp
+
      (use-package which-key
        :ensure t
        :config (which-key-mode))
+
    #+END_SRC
 
-** Programming
+** Smartparens
+   
+   This package enables autocompletion of brackets.
 
-*** LSP Mode
+   #+BEGIN_SRC emacs-lisp
 
-    Set up the client for Language Server Protocol. Used to provide IDE like functionality.
+     (use-package smartparens
+       :ensure t
+       :config (smartparens-global-mode))
 
-    To add an lsp server, use the *M-x lsp-install-server* to install the required packages, or follow documentation.
+   #+END_SRC
 
-    documentation: https://emacs-lsp.github.io/lsp-mode/page/languages/
+** MagIt
+   
+   This package provides a Git client.
 
-    LSP Keymap: C-c l
+   #+BEGIN_SRC emacs-lisp
+
+     (use-package magit
+       :ensure t)
+
+   #+END_SRC
+
+   
+* Programming Packages
+
+  #+BEGIN_SRC emacs-lisp
+
+    (setq gc-cons-threshold (* 100 1024 1024)
+	  read-process-output-max (* 1024 1024)
+	  company-minimum-prefix-length 1
+	  lsp-lens-enable t
+	  lsp-signature-auto-activate nil)
+
+  #+END_SRC
+
+** LSP Mode
+
+   Set up the client for Language Server Protocol. Used to provide IDE like functionality.
+
+   To add an lsp server, use the *M-x lsp-install-server* to install the required packages, or follow documentation.
+
+   Documentation: https://emacs-lsp.github.io/lsp-mode/page/languages/
+
+   LSP prefix: "C-l"
+
+   #+BEGIN_SRC emacs-lisp
+
+     (use-package lsp-mode
+       :ensure t
+       :init (setq lsp-keymap-prefix "C-l")
+       :hook (lsp-mode . lsp-enable-which-key-integration)
+       :commands (lsp lsp-deferred))
+
+   #+END_SRC
+    
+   Some missing IDE functionality includes: fancy sideline, popup documentation, code peeking, etc.
+   Including the lsp-ui package adds these to Emacs.
+
+   #+BEGIN_SRC emacs-lisp
+
+     (use-package lsp-ui
+       :ensure t
+       :after lsp
+       :commands lsp-ui-mode
+       :config
+       (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
+       (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references)
+       )
+
+   #+END_SRC
+
+   Configuration variables for lsp-ui
+
+   #+BEGIN_SRC emacs-lisp
+
+     (setq lsp-ui-doc-enable t
+	   lsp-ui-doc-use-childframe t
+	   lsp-ui-doc-position 'top
+	   lsp-ui-doc-include-signature t
+	   lsp-ui-sideline-enable nil
+	   lsp-ui-flycheck-enable t
+	   lsp-ui-flycheck-list-position 'right
+	   lsp-ui-flycheck-live-reporting t
+	   lsp-ui-peek-enable t
+	   lsp-ui-peek-list-width 60
+	   lsp-ui-peek-peek-height 25
+	   )
+
+
+	  #+END_SRC
+    
+   Since we are using Ivy, we need to enable Ivy support.
+
+   #+BEGIN_SRC emacs-lisp
+
+     (use-package lsp-ivy
+       :ensure t
+       :commands lsp-ivy-workspace-symbol
+       :config (global-set-key ))
+
+   #+END_SRC
+    
+   As well as enable Treemacs support.
+
+   #+BEGIN_SRC emacs-lisp
+
+     (use-package lsp-treemacs 
+       :ensure t 
+       :commands lsp-treemacs-errors-list)
+
+   #+END_SRC
+
+   Other packages can be added here if required (ex: dap-mode support for debugger)
+
+** Syntax Checking
+
+   We are going to be using FlyCheck. This package provides syntax checking with minimal configuration required.
+   Another alternative available on MELPA is FlyMake.
+
+   To see which languages are supported: https://www.flycheck.org/en/latest/languages.html#flycheck-languages
+
+   #+BEGIN_SRC emacs-lisp
+
+     (use-package flycheck
+       :ensure t
+       :init (global-flycheck-mode))
+
+   #+END_SRC
+
+** Auto Complete
+
+   We are going to use company-mode as it integrates nicely with LSP mode, and doesn't require any language specific configuration.
+
+   #+BEGIN_SRC emacs-lisp
+
+     (use-package company
+       :ensure t
+       :config 
+       (setq company-idle-delay 0)
+       (global-company-mode 1)
+       )
+
+   #+END_SRC
+
+** Debugger
+
+   https://emacs-lsp.github.io/dap-mode/page/configuration/
+
+   #+BEGIN_SRC emacs-lisp
+
+     (use-package dap-mode
+       :ensure t
+       :config (setq dap-auto-configure-features '(sessions locals controls tooltip)))
+
+   #+END_SRC
+
+** Language Specific Configuration
+
+*** Flutter
+
+    Hover allows to run flutter on an emulator from Emacs.
 
     #+BEGIN_SRC emacs-lisp
 
-      (use-package lsp-mode
-        :ensure t
-        :init (setq lsp-keymap-prefix "C-c l")
-        :hook (lsp-mode . lsp-enable-which-key-integration)
-        :commands (lsp lsp-deferred))
+      (use-package dart-mode
+	:custom 
+	(dart-sdk-path (concat (getenv "HOME") "/.flutter/bin/cache/dart-sdk/")
+		       dart-format-on-save t))
+
+      (use-package lsp-dart
+	:ensure t)
+
+      (add-hook 'dart-mode-hook 'lsp-deferred)
 
     #+END_SRC
     
-    Some missing IDE functionality includes: fancy sideline, popup documentation, code peeking, etc.
-    Including the lsp-ui package adds these to Emacs.
+*** C/C++
 
     #+BEGIN_SRC emacs-lisp
 
-      (use-package lsp-ui
-        :ensure t
-        :after lsp
-        :commands lsp-ui-mode)
+      (add-hook 'c-mode-hook 'lsp-deferred)
+      (add-hook 'c++-mode-hook 'lsp-deferred)
 
     #+END_SRC
-    
-    Since we are using Ivy, we need to enable Ivy support.
+ 
+*** PHP
 
     #+BEGIN_SRC emacs-lisp
 
-      (use-package lsp-ivy
+      (use-package php-mode
 	:ensure t
-	:commands lsp-ivy-workspace-symbol)
+	:mode ("\\.php\\'" . php-mode))
+
+      (use-package phpunit
+	:ensure t)
+
+      (add-hook 'php-mode-hook 'lsp-deferred)
 
     #+END_SRC
+ 
     
-    As well as enable Treemacs support.
-
-    #+BEGIN_SRC emacs-lisp
-
-      (use-package lsp-treemacs 
-	:ensure t 
-	:commands lsp-treemacs-errors-list)
-
-    #+END_SRC
-
-    Other packages can be added here if required (ex: dap-mode support for debugger)
-
-
-*** Syntax Checking
-
-    We are going to be using FlyCheck. This package provides syntax checking with minimal configuration required.
-    Another alternative available on MELPA is FlyMake.
-
-    To see which languages are supported: https://www.flycheck.org/en/latest/languages.html#flycheck-languages
-
-    #+BEGIN_SRC emacs-lisp
-
-      (use-package flycheck
-	:ensure t
-	:init (global-flycheck-mode))
-
-    #+END_SRC
-
-**** Language Specific Configuration
-
-***** C/C++
+    
