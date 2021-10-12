@@ -33,12 +33,12 @@
   :ensure t
   :config (exec-path-from-shell-initialize))
 
-(use-package color-theme-sanityinc-tomorrow
+(use-package dracula-theme
   :ensure t
   :config
-  (load-theme 'sanityinc-tomorrow-night t))
+  (load-theme 'dracula t))
 
-(set-frame-font "Hack Nerd Font 12" nil t)
+(set-frame-font "JetBrainsMono Nerd Font 12" nil t)
 
 (use-package telephone-line
   :ensure t
@@ -61,12 +61,9 @@
   :ensure t
   :config (add-hook 'org-mode-hook (lambda() (org-bullets-mode 1))))
 
-(use-package dashboard
+(use-package doom-modeline
   :ensure t
-  :config (dashboard-setup-startup-hook)
-  (setq dashboard-startup-banner "~/.emacs.d/glasses-with-mustache.png")
-  (setq dashboard-set-heading-icons t)
-  (setq dashboard-set-file-icons t))
+  :config (doom-modeline-mode t))
 
 (use-package evil
   :ensure t

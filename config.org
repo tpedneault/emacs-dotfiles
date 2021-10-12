@@ -117,15 +117,15 @@
    
    
 * UI 
-
+  
 ** Theme
 
    #+BEGIN_SRC emacs-lisp
 
-     (use-package color-theme-sanityinc-tomorrow
+     (use-package dracula-theme
        :ensure t
        :config
-       (load-theme 'sanityinc-tomorrow-night t))
+       (load-theme 'dracula t))
 
    #+END_SRC
    
@@ -133,7 +133,7 @@
 
    #+BEGIN_SRC emacs-lisp
 
-     (set-frame-font "Hack Nerd Font 12" nil t)
+     (set-frame-font "JetBrainsMono Nerd Font 12" nil t)
 
    #+END_SRC
 
@@ -175,12 +175,9 @@
 
    #+BEGIN_SRC emacs-lisp
 
-     (use-package dashboard
+     (use-package doom-modeline
        :ensure t
-       :config (dashboard-setup-startup-hook)
-       (setq dashboard-startup-banner "~/.emacs.d/glasses-with-mustache.png")
-       (setq dashboard-set-heading-icons t)
-       (setq dashboard-set-file-icons t))
+       :config (doom-modeline-mode t))
 
    #+END_SRC
 
