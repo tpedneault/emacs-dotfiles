@@ -505,6 +505,34 @@
 
    #+END_SRC
 
+** Project Management
+
+   Project integration library for Emacs.
+
+   #+BEGIN_SRC emacs-lisp
+
+     (use-package projectile
+       :ensure t
+       :config (projectile-mode +1)
+       (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
+
+   #+END_SRC
+
+** Code Snippets
+
+   #+BEGIN_SRC emacs-lisp
+
+     (use-package yasnippet
+       :ensure t)
+
+     (use-package yasnippet-snippets
+       :ensure t)
+
+     (use-package ivy-yasnippet
+       :ensure t)
+
+   #+END_SRC
+
 ** Language Specific Configuration
 
 *** Flutter
@@ -525,12 +553,36 @@
 
     #+END_SRC
     
+*** CMake
+
+    #+BEGIN_SRC emacs-lisp
+
+      (use-package cmake-mode
+	:ensure t
+	:mode ("CMakeLists\\.txt\\'" "\\.cmake\\'")
+	:hook (cmake-mode . lsp-deferred))
+
+      (use-package cmake-font-lock
+	:ensure t
+	:after cmake-mode
+	:config (cmake-font-lock-activate))
+
+    #+END_SRC
+ 
 *** C/C++
 
     #+BEGIN_SRC emacs-lisp
 
       (add-hook 'c-mode-hook 'lsp-deferred)
       (add-hook 'c++-mode-hook 'lsp-deferred)
+
+    #+END_SRC
+ 
+*** Lua
+
+    #+BEGIN_SRC emacs-lisp
+
+      (add-hook 'lua-mode-hook 'lsp-deferred)
 
     #+END_SRC
  

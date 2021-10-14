@@ -267,6 +267,20 @@
   :ensure t
   :config (setq dap-auto-configure-features '(sessions locals controls tooltip)))
 
+(use-package projectile
+  :ensure t
+  :config (projectile-mode +1)
+  (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
+
+(use-package yasnippet
+  :ensure t)
+
+(use-package yasnippet-snippets
+  :ensure t)
+
+(use-package ivy-yasnippet
+  :ensure t)
+
 (use-package dart-mode
   :custom 
   (dart-sdk-path (concat (getenv "HOME") "/.flutter/bin/cache/dart-sdk/")
@@ -277,8 +291,20 @@
 
 (add-hook 'dart-mode-hook 'lsp-deferred)
 
+(use-package cmake-mode
+  :ensure t
+  :mode ("CMakeLists\\.txt\\'" "\\.cmake\\'")
+  :hook (cmake-mode . lsp-deferred))
+
+(use-package cmake-font-lock
+  :ensure t
+  :after cmake-mode
+  :config (cmake-font-lock-activate))
+
 (add-hook 'c-mode-hook 'lsp-deferred)
 (add-hook 'c++-mode-hook 'lsp-deferred)
+
+(add-hook 'lua-mode-hook 'lsp-deferred)
 
 (use-package php-mode
   :ensure t
