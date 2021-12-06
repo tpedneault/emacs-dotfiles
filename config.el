@@ -20,7 +20,7 @@
 
 (global-hl-line-mode +1)
 
-(global-display-line-numbers-mode)
+(add-hook 'prog-mode-hook 'display-line-numbers-mode)
 
 (defun reload-config () (interactive) (load-file "~/.emacs.d/init.el"))
 
@@ -33,12 +33,10 @@
   :ensure t
   :config (exec-path-from-shell-initialize))
 
-(use-package dracula-theme
-  :ensure t
-  :config
-  (load-theme 'dracula t))
+(set-frame-parameter (selected-frame) 'alpha '(85. 85))
+(add-to-list 'default-frame-alist '(alpha . (85. 85)))
 
-(set-frame-font "JetBrainsMono Nerd Font 12" nil t)
+(set-frame-font "FantasqueSansMono Nerd Font 14" nil t)
 
 (use-package telephone-line
   :ensure t
@@ -209,6 +207,9 @@
 (use-package magit
   :ensure t)
 
+(use-package vterm 
+  :ensure t)
+
 (setq gc-cons-threshold (* 100 1024 1024)
       read-process-output-max (* 1024 1024)
       company-minimum-prefix-length 1
@@ -281,25 +282,17 @@
 (use-package ivy-yasnippet
   :ensure t)
 
-(use-package dart-mode
-  :custom 
-  (dart-sdk-path (concat (getenv "HOME") "/.flutter/bin/cache/dart-sdk/")
-		 dart-format-on-save t))
-
-(use-package lsp-dart
-  :ensure t)
-
-(add-hook 'dart-mode-hook 'lsp-deferred)
-
 (use-package cmake-mode
   :ensure t
-  :mode ("CMakeLists\\.txt\\'" "\\.cmake\\'")
-  :hook (cmake-mode . lsp-deferred))
+  :mode ("CMakeLists\\.txt\\'" "\\.cmake\\'"))
 
 (use-package cmake-font-lock
   :ensure t
   :after cmake-mode
   :config (cmake-font-lock-activate))
+
+
+  (add-hook 'cmake-mode 'lsp-deferred)
 
 (add-hook 'c-mode-hook 'lsp-deferred)
 (add-hook 'c++-mode-hook 'lsp-deferred)
@@ -314,3 +307,8 @@
   :ensure t)
 
 (add-hook 'php-mode-hook 'lsp-deferred)
+
+(use-package rust-mode 
+  :ensure t)
+
+(add-hook 'rust-mode-hook 'lsp-deferred)

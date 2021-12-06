@@ -1,7 +1,6 @@
 #+TITLE: Emacs Configuration
 
 * General Settings
-
 ** Set package archives
 
    #+BEGIN_SRC emacs-lisp
@@ -82,7 +81,7 @@
 
    #+BEGIN_SRC emacs-lisp
 
-     (global-display-line-numbers-mode)
+     (add-hook 'prog-mode-hook 'display-line-numbers-mode)
 
    #+END_SRC 
 
@@ -114,18 +113,16 @@
        :config (exec-path-from-shell-initialize))
 
    #+END_SRC
-   
-   
-* UI 
   
-** Theme
+   
+* UI
+
+** Transparency
 
    #+BEGIN_SRC emacs-lisp
 
-     (use-package dracula-theme
-       :ensure t
-       :config
-       (load-theme 'dracula t))
+     (set-frame-parameter (selected-frame) 'alpha '(85. 85))
+     (add-to-list 'default-frame-alist '(alpha . (85. 85)))
 
    #+END_SRC
    
@@ -133,7 +130,7 @@
 
    #+BEGIN_SRC emacs-lisp
 
-     (set-frame-font "JetBrainsMono Nerd Font 12" nil t)
+     (set-frame-font "FantasqueSansMono Nerd Font 14" nil t)
 
    #+END_SRC
 
@@ -180,8 +177,8 @@
        :config (doom-modeline-mode t))
 
    #+END_SRC
-
    
+
 * General Packages
 
 ** Evil 
@@ -205,7 +202,7 @@
 
    #+END_SRC
 
-** Ivy
+** Helm
 
    #+BEGIN_SRC emacs-lisp
 
@@ -242,9 +239,8 @@
 	   ivy-rich-path-style 'abbrev
 	   all-the-icons-ivy-rich-icon-size 1.1)
 
-
    #+END_SRC
-
+   
 ** Treemacs 
 
    #+BEGIN_SRC emacs-lisp
@@ -371,6 +367,17 @@
 
    #+END_SRC
 
+** VTerm
+   
+   This package provides a terminal emulator.
+
+   #+BEGIN_SRC emacs-lisp
+
+     (use-package vterm 
+       :ensure t)
+
+   #+END_SRC
+   
    
 * Programming Packages
 
@@ -535,37 +542,21 @@
 
 ** Language Specific Configuration
 
-*** Flutter
-
-    Hover allows to run flutter on an emulator from Emacs.
-
-    #+BEGIN_SRC emacs-lisp
-
-      (use-package dart-mode
-	:custom 
-	(dart-sdk-path (concat (getenv "HOME") "/.flutter/bin/cache/dart-sdk/")
-		       dart-format-on-save t))
-
-      (use-package lsp-dart
-	:ensure t)
-
-      (add-hook 'dart-mode-hook 'lsp-deferred)
-
-    #+END_SRC
-    
 *** CMake
 
     #+BEGIN_SRC emacs-lisp
 
       (use-package cmake-mode
 	:ensure t
-	:mode ("CMakeLists\\.txt\\'" "\\.cmake\\'")
-	:hook (cmake-mode . lsp-deferred))
+	:mode ("CMakeLists\\.txt\\'" "\\.cmake\\'"))
 
       (use-package cmake-font-lock
 	:ensure t
 	:after cmake-mode
 	:config (cmake-font-lock-activate))
+
+
+	(add-hook 'cmake-mode 'lsp-deferred)
 
     #+END_SRC
  
@@ -600,6 +591,19 @@
       (add-hook 'php-mode-hook 'lsp-deferred)
 
     #+END_SRC
+ 
+    
+    
+*** Rust
+
+    #+BEGIN_SRC emacs-lisp
+
+      (use-package rust-mode 
+	:ensure t)
+
+      (add-hook 'rust-mode-hook 'lsp-deferred)
+
+      #+END_SRC
  
     
     
