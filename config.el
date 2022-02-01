@@ -33,10 +33,7 @@
   :ensure t
   :config (exec-path-from-shell-initialize))
 
-(set-frame-parameter (selected-frame) 'alpha '(85. 85))
-(add-to-list 'default-frame-alist '(alpha . (85. 85)))
-
-(set-frame-font "FantasqueSansMono Nerd Font 14" nil t)
+(set-frame-font "Hack 12" nil t)
 
 (use-package telephone-line
   :ensure t
@@ -216,6 +213,8 @@
       lsp-lens-enable t
       lsp-signature-auto-activate nil)
 
+(global-set-key (kbd "C-x o") 'ace-window)
+
 (use-package lsp-mode
   :ensure t
   :init (setq lsp-keymap-prefix "C-l")
@@ -274,13 +273,11 @@
   (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
 
 (use-package yasnippet
-  :ensure t)
+  :ensure t
+  :config (setq yas-snippets-dirs '("~/.emacs.d/snippets"))
+  (yas-global-mode 1))
 
-(use-package yasnippet-snippets
-  :ensure t)
-
-(use-package ivy-yasnippet
-  :ensure t)
+(global-set-key (kbd "C-c i") 'yas-insert-snippet)
 
 (use-package cmake-mode
   :ensure t

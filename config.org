@@ -1,6 +1,7 @@
 #+TITLE: Emacs Configuration
 
 * General Settings
+
 ** Set package archives
 
    #+BEGIN_SRC emacs-lisp
@@ -117,20 +118,11 @@
    
 * UI
 
-** Transparency
-
-   #+BEGIN_SRC emacs-lisp
-
-     (set-frame-parameter (selected-frame) 'alpha '(85. 85))
-     (add-to-list 'default-frame-alist '(alpha . (85. 85)))
-
-   #+END_SRC
-   
 ** Font 
 
    #+BEGIN_SRC emacs-lisp
 
-     (set-frame-font "FantasqueSansMono Nerd Font 14" nil t)
+     (set-frame-font "Hack 12" nil t)
 
    #+END_SRC
 
@@ -389,6 +381,8 @@
 	  lsp-lens-enable t
 	  lsp-signature-auto-activate nil)
 
+    (global-set-key (kbd "C-x o") 'ace-window)
+
   #+END_SRC
 
 ** LSP Mode
@@ -445,7 +439,7 @@
 	   )
 
 
-	  #+END_SRC
+   #+END_SRC
     
    Since we are using Ivy, we need to enable Ivy support.
 
@@ -530,13 +524,11 @@
    #+BEGIN_SRC emacs-lisp
 
      (use-package yasnippet
-       :ensure t)
+       :ensure t
+       :config (setq yas-snippets-dirs '("~/.emacs.d/snippets"))
+       (yas-global-mode 1))
 
-     (use-package yasnippet-snippets
-       :ensure t)
-
-     (use-package ivy-yasnippet
-       :ensure t)
+     (global-set-key (kbd "C-c i") 'yas-insert-snippet)
 
    #+END_SRC
 
@@ -592,7 +584,6 @@
 
     #+END_SRC
  
-    
     
 *** Rust
 
