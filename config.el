@@ -33,32 +33,42 @@
   :ensure t
   :config (exec-path-from-shell-initialize))
 
-(set-frame-font "Hack 12" nil t)
+(set-frame-font "Hack 11" nil t)
 
-(use-package telephone-line
+(use-package minions
   :ensure t
-  :init 
-  (setq telephone-line-lhs
-	'((evil   . (telephone-line-evil-tag-segment))
-	  (accent . (telephone-line-vc-segment
-		     telephone-line-erc-modified-channels-segment
-		     telephone-line-process-segment))
-	  (nil    . (telephone-line-minor-mode-segment
-		     telephone-line-buffer-segment))))
-  (setq telephone-line-rhs
-	'((nil    . (telephone-line-misc-info-segment))
-	  (accent . (telephone-line-major-mode-segment))
-	  (evil   . (telephone-line-airline-position-segment))))
+  :defer 0.1
+  :config
+  (setq minions-mode-line-lighter "[+]")
+  (minions-mode 1))
 
-  :config (telephone-line-mode))
+(use-package mood-line
+  :ensure t
+  :defer 0.1
+  :after minions
+  :config
+  (defun mood-line-segment-major-mode ()
+    "Displays the current major mode in the mode-line."
+    (concat (format-mode-line minions-mode-line-modes 'mood-line-major-mode) "  "))
+  (mood-line-mode)
+  )
 
 (use-package org-bullets
   :ensure t
   :config (add-hook 'org-mode-hook (lambda() (org-bullets-mode 1))))
 
-(use-package doom-modeline
+(use-package dashboard
   :ensure t
-  :config (doom-modeline-mode t))
+  :init (progn
+	  (setq dashboard-items '((recents . 1)
+				  (projects . 1)))
+	  (setq dashboard-show-shortcuts nil)
+	  (setq dashboard-center-content nil)
+	  (setq dashboard-set-file-icons t)
+	  (setq dashboard-set-heading-icons t)
+	  )
+  :config (dashboard-setup-startup-hook)
+  )
 
 (use-package evil
   :ensure t
@@ -207,6 +217,67 @@
 (use-package vterm 
   :ensure t)
 
+(use-package centaur-tabs
+  :ensure t
+  :config 
+  (centaur-tabs-enable-buffer-reordering)
+  (setq centaur-tabs-adjust-buffer-order 'left)
+  (setq centaur-tabs-height 32)
+  (setq centaur-tabs-set-icons t)
+  (setq centaur-tabs-gray-out-icons 'buffer)
+  (setq centaur-tabs-style "bar")
+  (setq centaur-tabs-set-bar 'left)
+  (setq centaur-tabs-modified-marker "•")
+  (centaur-tabs-headline-match)
+  (centaur-tabs-group-by-projectile-project)
+  (centaur-tabs-mode t)
+  (defun centaur-tabs-buffer-groups ()
+    "`centaur-tabs-buffer-groups' control buffers' group rules.
+
+ Group centaur-tabs with mode if buffer is derived from `eshell-mode' `emacs-lisp-mode' `dired-mode' `org-mode' `magit-mode'.
+ All buffer name start with * will group to \"Emacs\".
+ Other buffer group by `centaur-tabs-get-group-name' with project name."
+    (list
+     (cond
+      ;; ((not (eq (file-remote-p (buffer-file-name)) nil))
+      ;; "Remote")
+      ((or (string-equal "*" (substring (buffer-name) 0 1))
+	   (memq major-mode '(magit-process-mode
+			      magit-status-mode
+			      magit-diff-mode
+			      magit-log-mode
+			      magit-file-mode
+			      magit-blob-mode
+			      magit-blame-mode
+			      )))
+       "Emacs")
+      ((derived-mode-p 'prog-mode)
+       "Editing")
+      ((derived-mode-p 'dired-mode)
+       "Dired")
+      ((memq major-mode '(helpful-mode
+			  help-mode))
+       "Help")
+      ((memq major-mode '(org-mode
+			  org-agenda-clockreport-mode
+			  org-src-mode
+			  org-agenda-mode
+			  org-beamer-mode
+			  org-indent-mode
+			  org-bullets-mode
+			  org-cdlatex-mode
+			  org-agenda-log-mode
+			  diary-mode))
+       "OrgMode")
+      (t
+       (centaur-tabs-get-group-name (current-buffer))))))
+  :hook
+  (dashboard-mode . centaur-tabs-local-mode)
+  )
+
+(define-key evil-normal-state-map (kbd "g t") 'centaur-tabs-forward)
+(define-key evil-normal-state-map (kbd "g T") 'centaur-tabs-backward)
+
 (setq gc-cons-threshold (* 100 1024 1024)
       read-process-output-max (* 1024 1024)
       company-minimum-prefix-length 1
@@ -266,6 +337,8 @@
 (use-package dap-mode
   :ensure t
   :config (setq dap-auto-configure-features '(sessions locals controls tooltip)))
+
+(require 'dap-cpptools)
 
 (use-package projectile
   :ensure t
