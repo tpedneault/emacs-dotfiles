@@ -33,7 +33,7 @@
   :ensure t
   :config (exec-path-from-shell-initialize))
 
-(set-frame-font "Hack 11" nil t)
+(set-frame-font "Hack Nerd Font 11" nil t)
 
 (use-package minions
   :ensure t
