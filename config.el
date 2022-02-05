@@ -285,6 +285,7 @@
       lsp-signature-auto-activate nil)
 
 (global-set-key (kbd "C-x o") 'ace-window)
+(global-set-key [f10] 'recompile)
 
 (use-package lsp-mode
   :ensure t
